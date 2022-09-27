@@ -1,0 +1,21 @@
+.main-app{
+    width: 39%;
+    padding-left: 19.5%;
+}
+
+.todoapp {
+    background: #fff;
+    margin: 130px 0 40px 0;
+    position: relative;
+    box-shadow: 0 2px 4px 0 rgb(0 0 0 / 20%), 0 25px 50px 0 rgb(0 0 0 / 10%);
+}
+section {
+    display: block;
+}
+.text-completed{
+    color: #d9d9d9;
+    text-decoration: line-through;
+}
+.filters li{
+    cursor: pointer;
+}

@@ -36,14 +36,14 @@ export const jobsSlice = createSlice({
             console.log('to complete all')
             const clone = [...state.jobs]
             clone.map((job, index) => {
-                job.status = 'completed'
+                return job.status = 'completed'
             })
             state.jobs = clone
         },
         allToActive: (state, action) => {
             const clone = [...state.jobs]
             clone.map((job, index) => {
-                job.status = 'active'
+                return job.status = 'active'
             })
             state.jobs = clone
         },

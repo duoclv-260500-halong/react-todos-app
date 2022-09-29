@@ -1,47 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import TodoDisplay from './TodoDisplay';
-import FooterDisplay from './FooterDisplay';
 import { uid } from 'uid'
+import { useSelector, useDispatch } from 'react-redux'
+import { addJob,  destroyAllJobsCompleted } from '../../../features/jobs/jobsSlice';
+import { incrementedActive, getJobsActive } from '../../../features/jobs/jobsActiveSlice';
+import { getJobsCompleted } from '../../../features/jobs/jobsCompletedSlice'
 import './Main.css'
 
 const TodoApp = () => {
-
+    const jobs = useSelector((state) => state.jobs.jobs);
+    const jobsActive = useSelector((state) => state.jobsActive.value)
+    const jobsCompleted = useSelector((state) => state.jobsCompleted.value)
+    const dispatch = useDispatch();
     const [job, setJob] = useState('');
-    const [jobs, setJobs] = useState(JSON.parse(localStorage.getItem('react-todos')) || []);
     const [statusJobs, setStatusJobs] = useState('All');
-    const [jobActives, setJobActives] = useState(0);
-    const [jobCompleteds, setJobCompleteds] = useState(0);
-    const [changeAnyJob, setChangeAnyJob] = useState(false)
     const handleInputJob = (e) => {
         setJob(e.target.value)
     }
-    const [allToCompleted, setAllToCompleted] = useState(false)
     const handleAddJob = () => {
-        job && setJobs([...jobs, { id: uid(32), status: 'active', value: job }])
+        const newJob = {
+            id: uid(32),
+            status: 'active',
+            value: job
+        }
+        job && dispatch(addJob(newJob))
+        job && dispatch(incrementedActive())
         setJob('')
     }
-    useEffect(() => {
-        jobs.length !== 0 && localStorage.setItem('react-todos', JSON.stringify(jobs))
-        jobs.length === 0 && localStorage.removeItem('react-todos')
-
-    }, [jobs, jobActives, jobCompleteds, changeAnyJob]);
-    const handleCompleteJob = (status, index) => {
-        jobs[index].status = status === 'active' ? 'completed' : 'active';
-        if (status === 'active') {
-            setJobActives(jobActives - 1);
-        } else {
-            setJobActives(jobActives + 1);
-        }
-        if (status === 'completed') {
-            setJobCompleteds(jobCompleteds - 1);
-        } else {
-            setJobCompleteds(jobCompleteds + 1);
-        }
-    }
-    useEffect(() => {
-        setJobActives(jobs.filter(job => job.status === 'active').length)
-        setJobCompleteds(jobs.filter(job => job.status === 'completed').length)
-    }, [jobs, allToCompleted]);
     const handleSelectAll = () => {
         setStatusJobs('All');
     }
@@ -51,57 +36,17 @@ const TodoApp = () => {
     const handleSelectCompleted = () => {
         setStatusJobs('Completed')
     }
-    const handleDestroy = (index) => {
-        if (jobs[index].status === 'completed') {
-            setJobCompleteds(jobCompleteds - 1)
-        } else {
-            setJobActives(jobActives - 1);
-        }
-        jobs.splice(index, 1)
-        setChangeAnyJob(!changeAnyJob)
-    }
+    useEffect(() => {
+        dispatch(getJobsActive({ value: jobs.filter(job => job.status === 'active').length }))
+        dispatch(getJobsCompleted({ value: jobs.filter(job => job.status === 'completed').length }))
+    }, [jobs])
+    useEffect(() => {
+        jobs.length !== 0 && localStorage.setItem('react-todos', JSON.stringify(jobs))
+        jobs.length === 0 && localStorage.removeItem('react-todos')
+
+    }, [jobs, jobsActive, jobsCompleted]);
     const destroyAllCompleted = () => {
-        const jobsRemoved = jobs.filter((job) => {
-            return job.status !== 'completed'
-        })
-        setJobs(jobsRemoved)
-        setJobCompleteds(0)
-        console.log('removed')
-        // setChangeAnyJob(!changeAnyJob)
-    }
-    const handleEdit = (e, index) => {
-        const clone = [...jobs];
-        if (e.key === "Enter") {
-            const element = document.getElementsByClassName('edit')[index]
-            element.style.display = 'none'
-            document.getElementsByClassName('label-todo')[index].style.display = 'block'
-            const jobElement = document.getElementsByClassName('job-item ')[index]
-            jobElement.className = jobElement.className.replace(' editing', '')
-            setChangeAnyJob(!changeAnyJob)
-        }
-
-        clone[index].value = e.target.value;
-        setJobs(clone);
-
-    }
-    const handleCompleteAll = () => {
-        allToCompleted && jobs.map((job, index) => {
-            // jobs[index].status = 'completed'
-            job.status = 'completed'
-        })
-
-        !allToCompleted && jobs.map((job, index) => {
-            // jobs[index].status = 'completed'
-            job.status = 'active'
-        })
-        setAllToCompleted(!allToCompleted)
-        setJobCompleteds(jobs.length)
-        setJobActives(0);
-    }
-    const handleEmptyJob = (index) => {
-        const clone = [...jobs];
-        clone.splice(index, 1);
-        setJobs(clone)
+        dispatch(destroyAllJobsCompleted())
     }
     return (
         <section className="todoapp">
@@ -116,13 +61,11 @@ const TodoApp = () => {
                         }
                         } />
                 </header>
-                <TodoDisplay jobs={jobs} statusJobs={statusJobs} handleCompleteJob={handleCompleteJob}
-                    handleDestroy={handleDestroy} handleCompleteAll={handleCompleteAll}
-                    handleEdit={handleEdit} changeAnyJob={changeAnyJob} handleEmptyJob={handleEmptyJob}/>
+                <TodoDisplay statusJobs={statusJobs} />
                 {jobs.length > 0 &&
                     <footer className="footer" data-reactid=".0.2">
                         <span className="todo-count" data-reactid=".0.2.0">
-                            <strong data-reactid=".0.2.0.0">{jobActives}</strong>
+                            <strong data-reactid=".0.2.0.0">{jobsActive}</strong>
                             <span data-reactid=".0.2.0.1"> </span>
                             <span data-reactid=".0.2.0.2">items</span>
                             <span data-reactid=".0.2.0.3"> left</span></span>
@@ -137,11 +80,10 @@ const TodoApp = () => {
                                 <a className={statusJobs === 'Completed' ? "selected" : ''} data-reactid=".0.2.1.4.0">Completed</a>
                             </li>
                         </ul>
-                        {jobCompleteds > 0 ? <button onClick={destroyAllCompleted} className="clear-completed" data-reactid=".0.2.2">Clear completed ({jobCompleteds})</button> : ''}
+                        {jobsCompleted > 0 ? <button onClick={destroyAllCompleted} className="clear-completed" data-reactid=".0.2.2">Clear completed ({jobsCompleted})</button> : ''}
                     </footer>}
             </div>
         </section>
     );
 }
-
 export default TodoApp;

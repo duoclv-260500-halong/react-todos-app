@@ -1,11 +1,18 @@
-import { current } from '@reduxjs/toolkit';
 import React, { memo, useEffect, useState } from 'react';
-
+import {useSelector, useDispatch} from 'react-redux'
+// import { editJob, deleteJob } from '../../../features/jobs/jobsSlice';
+import { editJob, deleteJob, editStatusJob, allToCompleted, allToActive } from '../../../features/jobs/jobsSlice';
+import { incrementedActive, decrementedActive, activeAll, allOutActive } from '../../../features/jobs/jobsActiveSlice';
+import { incrementedCompleted, decrementedCompleted, completedAll, allOutCompleted } from '../../../features/jobs/jobsCompletedSlice'
 const TodoDisplay = (props) => {
+    const { statusJobs } = props
+
+    const jobs = useSelector((state) => state.jobs.jobs)
     const [currentIndex, setCurrentIndex] = useState(null);
     const [prevIndex, setPrevIndex] = useState(null);
     const [checkValue, setCheckValue] = useState(false)
-    const { jobs, statusJobs, handleCompleteJob, handleDestroy, handleCompleteAll, handleEdit, changeAnyJob, handleEmptyJob } = props
+    const [checkAllToCompleted, setCheckAllToCompleted] = useState(true)
+    const dispatch = useDispatch();
 
     useEffect(() => {
         document.addEventListener("click", function (event) {
@@ -18,11 +25,13 @@ const TodoDisplay = (props) => {
         });
         return () => { };
     }, []);
+
     useEffect(() => {
-        if (checkValue) {
+        if (checkValue && prevIndex) {
             // console.log(prevIndex)
             try {
                 if(jobs[prevIndex].value === ''){
+                    
                     handleEmptyJob(prevIndex)
                 }
             } catch (error) {
@@ -30,6 +39,12 @@ const TodoDisplay = (props) => {
             }
         }
     }, [prevIndex, checkValue])
+    const handleEdit = (e, index) => {
+        dispatch(editJob({
+            index: index,
+            value: e.target.value
+        }))
+    }
     const handleEdit1 = (e, index) => {
         if (e.key === "Enter") {
             if (jobs[index].value === '') {
@@ -38,9 +53,56 @@ const TodoDisplay = (props) => {
             setCurrentIndex(null);
         }
     }
+    const handleEmptyJob = (index) => {
+        dispatch(deleteJob(index))
+        // const clone = [...jobs];
+        // clone.splice(index, 1);
+        // setJobs(clone)
+    }
     const handleDblClick = (index) => {
         setCurrentIndex(index);
         setPrevIndex(index)
+    }
+    const handleDestroy = (index) => {
+        dispatch(deleteJob(index))
+    }
+    const changeChecked = () => {}
+    const handleCompleteJob = (status, index) => {
+        const action = {
+            index: index,
+            status: status
+        }
+        dispatch(editStatusJob(action))
+        if (status === 'active') {
+            dispatch(decrementedActive())
+        } else {
+            dispatch(incrementedActive())
+        }
+        if (status === 'completed') {
+            dispatch(decrementedCompleted())
+        } else {
+            dispatch(incrementedCompleted())
+        }
+    }
+    const handleCompleteAll = () => {
+        console.log('handled')
+        if (checkAllToCompleted) {
+            const action = {
+                value: jobs.length
+            }
+            dispatch(allToCompleted())
+            dispatch(completedAll(action))
+            dispatch(allOutActive())
+        }
+        if (!checkAllToCompleted) {
+            const action = {
+                value: jobs.length
+            }
+            dispatch(allToActive())
+            dispatch(allOutCompleted())
+            dispatch(activeAll(action))
+        }
+        setCheckAllToCompleted(!checkAllToCompleted)
     }
     return (
         <>
@@ -52,7 +114,7 @@ const TodoDisplay = (props) => {
                         <li key={index} className={job.status === 'completed' ? 'job-item text-completed' : 'job-item '} data-reactid=".0.1.2.$af0f8169-b300-41a2-8db0-71ebfdf80722">
                             <div className="view" data-reactid=".0.1.2.$af0f8169-b300-41a2-8db0-71ebfdf80722.0">
                                 <input className="toggle" onClick={() => handleCompleteJob(job.status, index)} type="checkbox"
-                                    checked={job.status === 'active' ? false : true}
+                                    checked={job.status === 'active' ? false : true} onChange={() => changeChecked}
                                     data-reactid=".0.1.2.$af0f8169-b300-41a2-8db0-71ebfdf80722.0.0" />
                                 {
                                     currentIndex !== index && <label className='label-todo' onDoubleClick={() => handleDblClick(index)} data-reactid=".0.1.2.$af0f8169-b300-41a2-8db0-71ebfdf80722.0.1">

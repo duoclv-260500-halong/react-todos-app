@@ -132,7 +132,7 @@ const TodoDisplay = (props) => {
                     ))}
                     {statusJobs === 'Active' &&
                         jobs.filter(job => job.status === 'active').map((job, index) => (
-                            <li key={index} onMouse className="" data-reactid=".0.1.2.$af0f8169-b300-41a2-8db0-71ebfdf80722">
+                            <li key={index} className="" data-reactid=".0.1.2.$af0f8169-b300-41a2-8db0-71ebfdf80722">
                                 <div className="view" data-reactid=".0.1.2.$af0f8169-b300-41a2-8db0-71ebfdf80722.0">
                                     <input className="toggle" onClick={() => handleCompleteJob(job.status, index)} type="checkbox" data-reactid=".0.1.2.$af0f8169-b300-41a2-8db0-71ebfdf80722.0.0" />
                                     <label className='label-todo' data-reactid=".0.1.2.$af0f8169-b300-41a2-8db0-71ebfdf80722.0.1">{job.value}</label>
@@ -146,7 +146,7 @@ const TodoDisplay = (props) => {
                         jobs.filter(job => job.status === 'completed').map((job, index) => (
                             <li key={index} className="text-completed" data-reactid=".0.1.2.$af0f8169-b300-41a2-8db0-71ebfdf80722">
                                 <div className="view" data-reactid=".0.1.2.$af0f8169-b300-41a2-8db0-71ebfdf80722.0">
-                                    <input className="toggle" checked onClick={() => handleCompleteJob(job.status, index)} type="checkbox" data-reactid=".0.1.2.$af0f8169-b300-41a2-8db0-71ebfdf80722.0.0" />
+                                    <input className="toggle" checked onChange={() => changeChecked} onClick={() => handleCompleteJob(job.status, index)} type="checkbox" data-reactid=".0.1.2.$af0f8169-b300-41a2-8db0-71ebfdf80722.0.0" />
                                     <label className='label-todo' data-reactid=".0.1.2.$af0f8169-b300-41a2-8db0-71ebfdf80722.0.1">{job.value}</label>
                                     <button className="destroy" onClick={() => handleDestroy(index)} data-reactid=".0.1.2.$af0f8169-b300-41a2-8db0-71ebfdf80722.0.2">
                                     </button>
